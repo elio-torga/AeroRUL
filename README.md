@@ -6,7 +6,15 @@
 
 **[▶ Try the live demo](https://aerorul.streamlit.app)** · [Technical report](reports/final_report.md) · [Notebooks](notebooks/) · [Results](#results-at-a-glance)
 
+🇬🇧 English · [🇫🇷 Version française](README.fr.md)
+
 ---
+
+## Why I built this project
+
+I live in **Toulouse**, the capital of European aeronautics and the home of Airbus. Aircraft are my passion, and I wanted my data science work to connect with the industry that shapes my city.
+
+Predictive maintenance is one of the places where machine learning has a direct, measurable impact on aviation: it keeps aircraft safe, available and less expensive to operate. With AeroRUL I wanted to tackle this problem end to end, the way it is done in industry: from raw engine sensor data to a decision that a maintenance planner can trust and understand.
 
 ## Why this matters
 
@@ -56,40 +64,12 @@ The risk-aware policy gets within 4.5 % of the theoretical optimum with zero unp
 ![SHAP across the life of an engine](reports/figures/FD001_shap_over_life.png)
 
 
-## Architecture
-
-```mermaid
-flowchart LR
-    A[Raw sensors<br/>21 sensors + 3 settings] --> B[OperatingConditionNormalizer<br/>K-Means regimes, per-regime z-score,<br/>regime history]
-    B --> C[TemporalFeatureGenerator<br/>rolling stats x4 windows, EWMA,<br/>lags, 1st/2nd diffs, OLS slopes]
-    C --> D[SensorInteractionFeatures<br/>physics-based pairs]
-    D --> E[HealthIndicatorTransformer<br/>sensor fusion HI + its rates]
-    E --> F[FeatureSelector<br/>variance, de-correlation,<br/>importance top-k]
-    F --> G{Stacking ensemble<br/>Ridge, RF, ExtraTrees, HGB<br/>positive-Ridge meta-learner}
-    F --> H[Conformalized quantile<br/>regression, 80 % interval]
-    G --> I[RUL + interval + risk level]
-    H --> I
-    I --> J[SHAP explainer<br/>exact additive decomposition]
-    I --> K[Maintenance policy<br/>cost simulator]
-    subgraph unsupervised [Unsupervised, causal, fitted once]
-        B
-        C
-        D
-    end
-    subgraph supervised [Supervised, refitted in every CV fold]
-        E
-        F
-        G
-    end
-```
-
-Everything that sees the target (health indicator, feature selection, models) is fitted **inside** engine-grouped cross-validation. The unsupervised stage is deterministic and label-free, so it is computed only once, which makes hyper-parameter search tractable.
-
 ## Project structure
 
 ```
 AeroRUL/
-├── README.md
+├── README.md                   # English version
+├── README.fr.md                # French version
 ├── requirements.txt            # pinned versions (models are tied to scikit-learn 1.9.1)
 ├── LICENSE
 ├── config.yaml                 # every tunable of the system
